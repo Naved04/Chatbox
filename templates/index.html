@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Chatbot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="chat-wrapper">
+    <div class="chat-header">
+      <h2>🤖 Naved's AI Chatbot</h2>
+    </div>
+
+    <div id="chat-box" class="chat-box">
+      <div class="msg bot"><span>Hey! 👋 Try one of these questions or ask me anything.</span></div>
+    </div>
+
+    <!-- Sample Questions -->
+    <div class="suggestions">
+      <button onclick="sendSample('Hi')">Hi</button>
+      <button onclick="sendSample('Tell me a joke')">Tell me a joke</button>
+      <button onclick="sendSample('What is Python')">What is Python?</button>
+      <button onclick="sendSample('Who are you')">Who are you?</button>
+      <button onclick="sendSample('Give me motivation')">Give me motivation</button>
+    </div>
+
+    <!-- Chat Input -->
+    <div class="chat-input">
+      <input id="user-input" type="text" placeholder="Type a message..." onkeydown="handleEnter(event)">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    async function sendMessage(customMessage) {
+      const input = document.getElementById("user-input");
+      const message = customMessage || input.value.trim();
+      if (!message) return;
+
+      const chatBox = document.getElementById("chat-box");
+
+      // User message
+      chatBox.innerHTML += `<div class="msg user"><span>${message}</span></div>`;
+      input.value = "";
+
+      // Bot "thinking..."
+      const typingDiv = document.createElement("div");
+      typingDiv.className = "msg bot typing";
+      typingDiv.innerHTML = `<span>💭 Thinking...</span>`;
+      chatBox.appendChild(typingDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Send to backend
+      const response = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
+
+      const data = await response.json();
+      typingDiv.remove();
+
+      // Bot reply
+      chatBox.innerHTML += `<div class="msg bot"><span>${data.reply}</span></div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendSample(question) {
+      sendMessage(question);
+    }
+
+    function handleEnter(event) {
+      if (event.key === "Enter") sendMessage();
+    }
+  </script>
+</body>
+</html>
